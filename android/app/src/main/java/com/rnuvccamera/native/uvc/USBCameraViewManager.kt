@@ -4,6 +4,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.fragment.app.Fragment
+import com.facebook.react.bridge.Dynamic
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ThemedReactContext
@@ -52,9 +53,21 @@ class USBCameraViewManager : SimpleViewManager<FrameLayout>() {
     }
 
     @ReactProp(name = "deviceId")
-    fun setDeviceId(view: FrameLayout, deviceId: String?) {
-        val fragment = getFragment(view)
-        fragment?.setDeviceId(deviceId)
+    fun setDeviceId(view: FrameLayout, deviceId: Dynamic) {
+//        val fragment = getFragment(view)
+//        fragment?.setDeviceId(deviceId)
+        try {
+            val fragment = getFragment(view)
+            when {
+                deviceId == null -> fragment?.setDeviceId(null)
+                deviceId.isNull -> fragment?.setDeviceId(null)
+                deviceId.type.name == "String" -> fragment?.setDeviceId(deviceId.asString())
+                deviceId.type.name == "Number" -> fragment?.setDeviceId(deviceId.asInt().toString())
+                else -> fragment?.setDeviceId(deviceId.toString())
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     @ReactProp(name = "resolution")

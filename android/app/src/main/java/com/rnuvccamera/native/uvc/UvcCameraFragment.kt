@@ -31,7 +31,7 @@ import com.rnuvccamera.native.utils.MLog
  */
 open class UvcCameraFragment : MultiCameraFragment(), ICameraStateCallBack {
     lateinit var mBinding: ActivityUvcCameraBinding
-    private var uvcCameraAdapter: UvcCameraAdapter? = null
+    protected var uvcCameraAdapter: UvcCameraAdapter? = null
     private var isPause = false
     override fun generateCamera(ctx: Context, device: UsbDevice): MultiCameraClient.ICamera {
         return CameraUVC(ctx, device)
