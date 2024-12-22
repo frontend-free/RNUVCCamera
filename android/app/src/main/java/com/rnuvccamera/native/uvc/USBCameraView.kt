@@ -2,8 +2,13 @@ package com.rnuvccamera.native.uvc
 
 import android.content.Context
 import android.hardware.usb.UsbDevice
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.widget.FrameLayout
+import androidx.databinding.DataBindingUtil
 import com.jiangdg.ausbc.MultiCameraClient
+import com.jiangdg.ausbc.base.MultiCameraFragment
 import com.jiangdg.ausbc.callback.ICameraStateCallBack
 import com.jiangdg.ausbc.camera.bean.CameraRequest
 import com.jiangdg.ausbc.render.RenderManager
@@ -11,8 +16,11 @@ import com.jiangdg.ausbc.widget.AspectRatioTextureView
 import com.jiangdg.ausbc.camera.CameraUVC
 import com.jiangdg.ausbc.callback.IDeviceConnectCallBack
 import com.jiangdg.ausbc.callback.ICameraStateCallBack.State
+import com.rnuvccamera.databinding.ActivityUvcCameraBinding
 
-class USBCameraView(context: Context) : FrameLayout(context), ICameraStateCallBack, IDeviceConnectCallBack {
+
+class USBCameraView(context: Context) : UvcCameraFragment() {
+//    lateinit var mBinding: ActivityUvcCameraBinding
     private var multiCameraClient: MultiCameraClient? = null
     private var textureView: AspectRatioTextureView? = null
     private var currentCamera: CameraUVC? = null
@@ -22,69 +30,55 @@ class USBCameraView(context: Context) : FrameLayout(context), ICameraStateCallBa
     private var currentHeight: Int = 480
 
     init {
-        initView()
+//        initView()
     }
 
-    private fun initView() {
-        // 初始化预览视图
-        textureView = AspectRatioTextureView(context).apply {
-            surfaceWidth = currentWidth
-            surfaceHeight = currentHeight
-        }
-        addView(textureView)
-
-        // 初始化相机客户端
-        multiCameraClient = MultiCameraClient(context).apply {
-            setStateCallback(this@USBCameraView)
-            setDeviceCallback(this@USBCameraView)
-        }
+    override fun generateCamera(ctx: Context, device: UsbDevice): MultiCameraClient.ICamera {
+        return CameraUVC(ctx, device)
     }
 
-    // ICameraStateCallBack 实现
-    override fun onCameraState(self: MultiCameraClient.ICamera, code: State, msg: String?) {
-        when (code) {
-            State.OPENED -> {
-                currentCamera?.let { camera ->
-                    camera.setRenderManager(RenderManager())
-                    camera.updateRenderView(textureView, currentWidth, currentHeight)
-                    startPreview()
-                }
-            }
-            State.CLOSED -> {
-                currentCamera = null
-                isPreview = false
-            }
-            State.PREVIEW_STARTED -> {
-                isPreview = true
-            }
-            State.PREVIEW_STOPPED -> {
-                isPreview = false
-            }
-        }
-    }
+
+//    private fun initView() {
+//        textureView = AspectRatioTextureView(context).apply {
+//            setAspectRatio(currentWidth, currentHeight)
+//        }
+//        addView(textureView)
+//
+//        multiCameraClient = MultiCameraClient(context).apply {
+//            setStateCallback(this@USBCameraView)
+//            setDeviceCallback(this@USBCameraView)
+//        }
+//    }
+//
+
 
     // IDeviceConnectCallBack 实现
-    override fun onConnected(device: UsbDevice?) {
-        device?.let {
-            if (it.deviceId.toString() == currentDeviceId || currentDeviceId == null) {
-                multiCameraClient?.requestPermission(it)
-            }
-        }
-    }
+//    override fun onAttachDev(device: UsbDevice?) {
+//        device?.let {
+//            if (it.deviceName == currentDeviceId || currentDeviceId == null) {
+//                multiCameraClient?.requestPermission(it)
+//            }
+//        }
+//    }
 
-    override fun onDisconnected(device: UsbDevice?) {
-        if (isPreview) {
-            stopPreview()
-        }
-    }
-
-    override fun onPermissionGranted(device: UsbDevice?) {
-        openCamera()
-    }
-
-    override fun onPermissionDenied(device: UsbDevice?) {
-        // 处理权限被拒绝的情况
-    }
+//    override fun onDetachDec(device: UsbDevice?) {
+//        if (isPreview) {
+//            stopPreview()
+//        }
+//    }
+//
+//    override fun onConnectDev(device: UsbDevice?, ctrlBlock: USBMonitor.UsbControlBlock?) {
+//        openCamera()
+//    }
+//
+//    override fun onDisConnectDec(device: UsbDevice?, ctrlBlock: USBMonitor.UsbControlBlock?) {
+//        stopPreview()
+//        currentCamera = null
+//    }
+//
+//    override fun onCancelDev(device: UsbDevice?) {
+//        // 处理设备取消操作
+//    }
 
     private fun openCamera() {
         val cameraRequest = CameraRequest.Builder()
@@ -92,7 +86,7 @@ class USBCameraView(context: Context) : FrameLayout(context), ICameraStateCallBa
             .setPreviewHeight(currentHeight)
             .create()
 
-        multiCameraClient?.openCamera(cameraRequest)
+//        multiCameraClient?.openCamera(cameraRequest)
     }
 
     fun setDeviceId(deviceId: String?) {
@@ -102,28 +96,13 @@ class USBCameraView(context: Context) : FrameLayout(context), ICameraStateCallBa
     fun setResolution(width: Int, height: Int) {
         currentWidth = width
         currentHeight = height
-        textureView?.apply {
-            surfaceWidth = width
-            surfaceHeight = height
-        }
+        textureView?.setAspectRatio(width, height)
         if (isPreview) {
-            stopPreview()
+//            stopPreview()
             openCamera()
         }
     }
 
-    fun startPreview() {
-        currentCamera?.startPreview()
-    }
 
-    fun stopPreview() {
-        currentCamera?.stopPreview()
-    }
 
-    override fun onDetachedFromWindow() {
-        super.onDetachedFromWindow()
-        stopPreview()
-        currentCamera?.releaseCamera()
-        multiCameraClient?.release()
-    }
 } 
