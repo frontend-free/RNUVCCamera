@@ -53,18 +53,12 @@ class USBCameraViewManager : SimpleViewManager<FrameLayout>() {
     }
 
     @ReactProp(name = "deviceId")
-    fun setDeviceId(view: FrameLayout, deviceId: Dynamic) {
+    fun setDeviceId(view: FrameLayout, deviceId: Int) {
 //        val fragment = getFragment(view)
 //        fragment?.setDeviceId(deviceId)
         try {
             val fragment = getFragment(view)
-            when {
-                deviceId == null -> fragment?.setDeviceId(null)
-                deviceId.isNull -> fragment?.setDeviceId(null)
-                deviceId.type.name == "String" -> fragment?.setDeviceId(deviceId.asString())
-                deviceId.type.name == "Number" -> fragment?.setDeviceId(deviceId.asInt().toString())
-                else -> fragment?.setDeviceId(deviceId.toString())
-            }
+            fragment?.setDeviceId(deviceId)
         } catch (e: Exception) {
             e.printStackTrace()
         }

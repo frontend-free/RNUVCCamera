@@ -12,6 +12,8 @@ import com.facebook.react.defaults.DefaultReactNativeHost
 import com.facebook.react.soloader.OpenSourceMergedSoMapping
 import com.facebook.soloader.SoLoader
 import com.rnuvccamera.native.USBCameraPackage
+import com.rnuvccamera.native.utils.ContextUtil
+import com.rnuvccamera.native.utils.MLog
 
 class MainApplication : Application(), ReactApplication {
 
@@ -36,6 +38,8 @@ class MainApplication : Application(), ReactApplication {
 
   override fun onCreate() {
     super.onCreate()
+    ContextUtil.init(this)
+    MLog.init(true)
     SoLoader.init(this, OpenSourceMergedSoMapping)
     if (BuildConfig.IS_NEW_ARCHITECTURE_ENABLED) {
       // If you opted-in for the New Architecture, we load the native entry point for this app.
