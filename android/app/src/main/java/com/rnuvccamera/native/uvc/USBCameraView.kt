@@ -11,7 +11,6 @@ import android.view.ViewGroup
 import android.view.LayoutInflater
 import android.widget.Toast
 import androidx.databinding.DataBindingUtil
-import com.jiangdg.ausbc.base.CameraFragment
 import com.jiangdg.ausbc.camera.bean.CameraRequest
 import com.jiangdg.ausbc.MultiCameraClient
 import com.jiangdg.ausbc.callback.ICameraStateCallBack
@@ -86,19 +85,26 @@ class USBCameraView : CameraFragment() {
     }
 
     fun setDeviceId(deviceId: Int?) {
+//        return;
         if (currentDeviceId == deviceId) return
         currentDeviceId = deviceId
 
         // 关闭当前摄像头
-        closeCamera()
+        //closeCamera()
 
         // 如果设置为 null，直接返回
         if (deviceId == null) return
-        Toast.makeText(requireContext(), "开始申请权限"+getUsbDeviceList()?.size, Toast.LENGTH_SHORT).show()
+
 
         // 获取所有 USB 设备
         getUsbDeviceList()?.forEach { device ->
             if (device.deviceId == deviceId) {
+
+                return;
+                Toast.makeText(requireContext(), "开始申请权限"+getUsbDeviceList()?.size, Toast.LENGTH_SHORT).show()
+                generateCamera(requireContext(), device)
+                switchCamera(device)
+                return;
                 // 检查权限
                 if (!hasPermission(device)) {
                     // 申请权限
@@ -106,31 +112,27 @@ class USBCameraView : CameraFragment() {
                 } else {
                     // 已有权限，直接打开摄像头
                     Toast.makeText(requireContext(), "已有权限", Toast.LENGTH_SHORT).show()
-                    openCamera()
+                    switchCamera(device)
                 }
                 return
             }
         }
     }
 
+    override fun getDefaultCamera(): UsbDevice? {
+        return this.getUsbDeviceList()?.find { it.deviceId == currentDeviceId }
+    }
+
+
     fun setResolution(width: Int, height: Int) {
-        if (currentWidth == width && currentHeight == height) return
-        currentWidth = width
-        currentHeight = height
-        
-        // 如果摄像头已经打开，需要重新打开以应用新的分辨率
-        if (isCameraOpened()) {
-            closeCamera()
-            openCamera()
-        }
+//        if (currentWidth == width && currentHeight == height) return
+//        currentWidth = width
+//        currentHeight = height
+//
+//        // 如果摄像头已经打开，需要重新打开以应用新的分辨率
+//        if (isCameraOpened()) {
+//            closeCamera()
+//            openCamera()
+//        }
     }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-    }
-
 }
