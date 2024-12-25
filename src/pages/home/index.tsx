@@ -81,6 +81,18 @@ const Home: FC = () => {
             onPreviewStopped={(event) => console.log('相机1停止预览', event)}
           />
         </View>
+        <View style={styles.cameraWrapper}>
+          <Text style={styles.cameraTitle}>相机 2</Text>
+          <USBCamera
+            style={styles.cameraView}
+            deviceId={devices[1]?.deviceId}
+            resolution={{width: 640, height: 600}}
+            onDeviceConnected={(event) => console.log('相机1已连接', event)}
+            onDeviceDisconnected={(event) => console.log('相机1已断开', event)}
+            onPreviewStarted={(event) => console.log('相机1开始预览', event)}
+            onPreviewStopped={(event) => console.log('相机1停止预览', event)}
+          />
+        </View>
       </View>
     </ScrollView>
   );
@@ -119,7 +131,7 @@ const styles = StyleSheet.create({
   cameraView: {
     width: 320,
     height: 240,
-    // backgroundColor: '#000',
+    backgroundColor: '#000',
   },
 });
 
