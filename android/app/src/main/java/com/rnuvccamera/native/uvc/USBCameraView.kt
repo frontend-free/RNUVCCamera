@@ -1,114 +1,43 @@
 package com.rnuvccamera.native.uvc
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.hardware.usb.UsbDevice
-import android.hardware.usb.UsbManager
-import android.os.Bundle
-import android.view.Gravity
-import android.view.View
-import android.view.ViewGroup
-import android.view.LayoutInflater
-import android.widget.Toast
-import androidx.databinding.DataBindingUtil
-import com.jiangdg.ausbc.base.CameraFragment
-import com.jiangdg.ausbc.camera.bean.CameraRequest
 import com.jiangdg.ausbc.MultiCameraClient
-import com.jiangdg.ausbc.callback.ICameraStateCallBack
-import com.jiangdg.ausbc.widget.AspectRatioTextureView
-import com.jiangdg.ausbc.widget.IAspectRatio
-import com.rnuvccamera.R
-import com.rnuvccamera.databinding.ActivityUvcCameraBinding
-import com.rnuvccamera.databinding.FragmentDemoBinding
+import com.jiangdg.ausbc.camera.bean.CameraRequest
 import com.rnuvccamera.databinding.ItemUvcCameraLayoutBinding
+import com.rnuvccamera.native.base.BaseViewHolder
 
-class USBCameraView : CameraFragment() {
-    lateinit var mViewBinding: FragmentDemoBinding
-    private var currentDeviceId: Int? = null
+class USBCameraView(context: Context) : UvcCameraFragment() {
+    private var currentDeviceId: Int? = 0
     private var currentWidth: Int = 1080
     private var currentHeight: Int = 634
 
-    override fun getRootView(inflater: LayoutInflater, container: ViewGroup?): View? {
-        mViewBinding = FragmentDemoBinding.inflate(inflater, container, false)
-        return mViewBinding.root
+    override fun generateCamera(ctx: Context, device: UsbDevice): MultiCameraClient.ICamera {
+        return super.generateCamera(ctx, device)
     }
 
-    override fun getGravity(): Int = Gravity.CENTER
-
-    override fun onCameraState(
-        self: MultiCameraClient.ICamera,
-        code: ICameraStateCallBack.State,
-        msg: String?
-    ) {
-        when (code) {
-            ICameraStateCallBack.State.OPENED -> handleCameraOpened()
-            ICameraStateCallBack.State.CLOSED -> handleCameraClosed()
-            ICameraStateCallBack.State.ERROR -> handleCameraError(msg)
-        }
-    }
-
-    private fun handleCameraError(msg: String?) {
-        Toast.makeText(requireContext(), "handleCameraError: $msg", Toast.LENGTH_SHORT).show()
-    }
-
-    private fun handleCameraClosed() {
-        Toast.makeText(requireContext(), "handleCameraClosed", Toast.LENGTH_SHORT).show()
-    }
-
-    private fun handleCameraOpened() {
-        Toast.makeText(requireContext(), "handleCameraOpened", Toast.LENGTH_SHORT).show()
-    }
-
-    override fun getCameraView(): IAspectRatio? {
-        return AspectRatioTextureView(requireContext())
-    }
-
-
-    override fun getCameraViewContainer(): ViewGroup? {
-        return mViewBinding.cameraViewContainer
-    }
-
-    /**
-     * 获取所有 USB 设备列表
-     */
-    @SuppressLint("ServiceCast")
-    private fun getUsbDeviceList(): List<UsbDevice>? {
-        val usbManager = requireContext().getSystemService(Context.USB_SERVICE) as? UsbManager
-        return usbManager?.deviceList?.values?.toList()
-    }
-
-    /**
-     * 检查是否有 USB 设备权限
-     */
-    private fun hasPermission(device: UsbDevice): Boolean {
-        val usbManager = requireContext().getSystemService(Context.USB_SERVICE) as? UsbManager
-        return usbManager?.hasPermission(device) ?: false
-    }
-
-    fun setDeviceId(deviceId: Int?) {
+    fun setDeviceId(deviceId: Int) {
         if (currentDeviceId == deviceId) return
         currentDeviceId = deviceId
-
-        // 关闭当前摄像头
-        closeCamera()
-
-        // 如果设置为 null，直接返回
-        if (deviceId == null) return
-        Toast.makeText(requireContext(), "开始申请权限"+getUsbDeviceList()?.size, Toast.LENGTH_SHORT).show()
-
-        // 获取所有 USB 设备
-        getUsbDeviceList()?.forEach { device ->
-            if (device.deviceId == deviceId) {
-                // 检查权限
-                if (!hasPermission(device)) {
-                    // 申请权限
-                    requestPermission(device)
+        
+        // 遍历当前连接的摄像头
+        uvcCameraAdapter?.dataList?.forEach { camera ->
+            val usbDevice = camera.getUsbDevice()
+            
+            if (deviceId == usbDevice.deviceId) {
+                // 找到匹配的设备，请求权限并打开
+                if (!hasPermission(usbDevice)) {
+                    requestPermission(usbDevice)
                 } else {
-                    // 已有权限，直接打开摄像头
-                    Toast.makeText(requireContext(), "已有权限", Toast.LENGTH_SHORT).show()
-                    openCamera()
+                    // 关闭其他摄像头
+                    uvcCameraAdapter?.dataList?.forEach { otherCamera ->
+                        if (otherCamera.getUsbDevice().deviceId != deviceId) {
+                            otherCamera.closeCamera()
+                        }
+                    }
+                    // 打开指定摄像头
+                    openCamera(camera)
                 }
-                return
             }
         }
     }
@@ -118,19 +47,46 @@ class USBCameraView : CameraFragment() {
         currentWidth = width
         currentHeight = height
         
-        // 如果摄像头已经打开，需要重新打开以应用新的分辨率
-        if (isCameraOpened()) {
-            closeCamera()
-            openCamera()
+        // 更新当前打开的摄像头分辨率
+        uvcCameraAdapter?.dataList?.find { camera ->
+            camera.getUsbDevice().deviceId == currentDeviceId
+        }?.let { camera ->
+            camera.closeCamera()
+            openCamera(camera)
         }
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+    private fun openCamera(camera: MultiCameraClient.ICamera) {
+        val request = CameraRequest.Builder()
+            .setPreviewWidth(currentWidth)
+            .setPreviewHeight(currentHeight)
+            .create()
+            
+        // 找到对应的 SurfaceView
+        uvcCameraAdapter?.dataList?.indexOf(camera)?.let { index ->
+            val itemBinding = mBinding.rvCamera.findViewHolderForAdapterPosition(index) as? BaseViewHolder<ItemUvcCameraLayoutBinding>
+            itemBinding?.binding?.surface?.let { surfaceView ->
+                camera.openCamera(surfaceView, request)
+                camera.setCameraStateCallBack(this)
+            }
+        }
     }
 
+    override fun onCameraConnected(camera: MultiCameraClient.ICamera) {
+        super.onCameraConnected(camera)
+        
+        // 如果是当前选中的设备，自动打开
+        if (camera.getUsbDevice().deviceId == currentDeviceId) {
+            openCamera(camera)
+        }
+    }
+
+    override fun onCameraDetached(camera: MultiCameraClient.ICamera) {
+        super.onCameraDetached(camera)
+        
+        // 如果断开的是当前设备，清除设备ID
+        if (camera.getUsbDevice().deviceId == currentDeviceId) {
+            currentDeviceId = null
+        }
+    }
 }
