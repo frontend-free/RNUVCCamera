@@ -1,8 +1,9 @@
 import React, {FC, useEffect, useRef} from 'react';
 import {Header} from 'react-native/Libraries/NewAppScreen';
-import {Button, ScrollView, StyleSheet, Text, View} from 'react-native';
+import {Button, ScrollView, StyleSheet, Text, ToastAndroid, View} from 'react-native';
 import {USBCamera} from '../../components/USBCamera';
 import {UsbSerialManager} from 'react-native-usb-serialport-for-android';
+import {PERMISSIONS, request, requestMultiple} from "react-native-permissions";
 
 interface UsbDevice {
   deviceId: string;
@@ -17,23 +18,34 @@ const Home: FC = () => {
 
 
   useEffect(() => {
-    const fetchDevices = async () => {
-      try {
-        const deviceList = await UsbSerialManager.list();
-        setDevices(deviceList);
-        // 自动请求前两个设备的权限
-        if (deviceList.length >= 1) {
-          await UsbSerialManager.tryRequestPermission(deviceList[0].deviceId);
-        }
-        if (deviceList.length >= 2) {
-          await UsbSerialManager.tryRequestPermission(deviceList[1].deviceId);
-        }
-      } catch (error) {
-        console.error('获取设备列表失败:', error);
-      }
-    };
+    let fetchDevices:any = null;
+    let timer = 0;
+    requestMultiple([
+      PERMISSIONS.ANDROID.CAMERA,
+      PERMISSIONS.ANDROID.WRITE_EXTERNAL_STORAGE,
+    ]).then((status) => {
 
-    const timer = setInterval(fetchDevices, 1000);
+        // …
+        fetchDevices = async () => {
+          try {
+            const deviceList = await UsbSerialManager.list();
+            ToastAndroid.show('333333'+deviceList.length, 2000)
+            setDevices(deviceList);
+            //自动请求前两个设备的权限
+            // if (deviceList.length >= 1) {
+            //   await UsbSerialManager.tryRequestPermission(deviceList[0].deviceId);
+            // }
+            // if (deviceList.length >= 2) {
+            //   await UsbSerialManager.tryRequestPermission(deviceList[1].deviceId);
+            // }
+          } catch (error) {
+            console.error('获取设备列表失败:', error);
+          }
+          timer = setInterval(fetchDevices, 1000);
+        }
+      }
+    );
+
     return () => clearInterval(timer);
   }, []);
 
@@ -62,14 +74,13 @@ const Home: FC = () => {
             ref={camera1}
             style={styles.cameraView}
             deviceId={devices[0]?.deviceId}
-            resolution={{width: 640, height: 480}}
+            resolution={{width: 640, height: 600}}
             onDeviceConnected={(event) => console.log('相机1已连接', event)}
             onDeviceDisconnected={(event) => console.log('相机1已断开', event)}
             onPreviewStarted={(event) => console.log('相机1开始预览', event)}
             onPreviewStopped={(event) => console.log('相机1停止预览', event)}
           />
         </View>
-
       </View>
     </ScrollView>
   );
@@ -108,7 +119,7 @@ const styles = StyleSheet.create({
   cameraView: {
     width: 320,
     height: 240,
-    backgroundColor: '#000',
+    // backgroundColor: '#000',
   },
 });
 
