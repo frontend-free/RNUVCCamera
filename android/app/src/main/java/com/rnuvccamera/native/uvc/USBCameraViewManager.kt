@@ -1,5 +1,6 @@
 package com.rnuvccamera.native.uvc
 
+import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
@@ -17,20 +18,22 @@ class USBCameraViewManager : SimpleViewManager<FrameLayout>() {
     override fun createViewInstance(reactContext: ThemedReactContext): FrameLayout {
         return FrameLayout(reactContext).apply {
             id = View.generateViewId()
-            
+            Log.d("test1", "0000")
             layoutParams = ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT
             )
-
+            Log.d("test1", "1111")
             addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
                 override fun onViewAttachedToWindow(v: View) {
+                    Log.d("test1", "2222")
                     val fragment = USBCameraView()
                     val activity = reactContext.currentActivity as? FragmentActivity
                     
                     activity?.supportFragmentManager?.beginTransaction()?.apply {
                         replace(id, fragment)
                         commitAllowingStateLoss()
+                        Log.d("test1", "3333")
                     }
                     
                     removeOnAttachStateChangeListener(this)
