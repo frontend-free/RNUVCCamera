@@ -85,9 +85,11 @@ class USBCameraView : CameraFragment() {
     }
 
     fun setDeviceId(deviceId: Int?) {
+
 //        return;
         if (currentDeviceId == deviceId) return
         currentDeviceId = deviceId
+        return;
 
         // 关闭当前摄像头
         //closeCamera()
@@ -95,11 +97,12 @@ class USBCameraView : CameraFragment() {
         // 如果设置为 null，直接返回
         if (deviceId == null) return
 
-
+        Toast.makeText(requireContext(), "设备id"+deviceId, Toast.LENGTH_SHORT).show()
         // 获取所有 USB 设备
         getUsbDeviceList()?.forEach { device ->
             if (device.deviceId == deviceId) {
-
+                Toast.makeText(requireContext(), "权限"+hasPermission(device), Toast.LENGTH_SHORT).show()
+//                setDevice(device)
                 return;
                 Toast.makeText(requireContext(), "开始申请权限"+getUsbDeviceList()?.size, Toast.LENGTH_SHORT).show()
                 generateCamera(requireContext(), device)

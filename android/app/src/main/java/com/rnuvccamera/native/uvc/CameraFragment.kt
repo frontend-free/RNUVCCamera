@@ -81,7 +81,6 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
         mCameraClient = MultiCameraClient(requireContext(), object : IDeviceConnectCallBack {
             override fun onAttachDev(device: UsbDevice?) {
                 device ?: return
-                Toast.makeText(requireContext(), "device insert: ${device.productId}, ${device.vendorId}", Toast.LENGTH_SHORT).show()
                 context?.let {
                     if (mCameraMap.containsKey(device.deviceId)) {
                         return
@@ -190,7 +189,7 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
             }
 
             override fun onSurfaceTextureUpdated(p0: SurfaceTexture) {
-                registerMultiCamera()
+
             }
         }
     }

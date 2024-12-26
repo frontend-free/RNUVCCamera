@@ -19,7 +19,7 @@ const Home: FC = () => {
 
   useEffect(() => {
     let fetchDevices:any = null;
-    let timer = 0;
+    let timer:NodeJS.Timeout;
     requestMultiple([
       PERMISSIONS.ANDROID.CAMERA,
       PERMISSIONS.ANDROID.WRITE_EXTERNAL_STORAGE,
@@ -29,41 +29,33 @@ const Home: FC = () => {
         fetchDevices = async () => {
           try {
             const deviceList = await UsbSerialManager.list();
-            ToastAndroid.show('333333'+deviceList.length, 2000)
             setDevices(deviceList);
-            //自动请求前两个设备的权限
-            // if (deviceList.length >= 1) {
-            //   await UsbSerialManager.tryRequestPermission(deviceList[0].deviceId);
-            // }
-            // if (deviceList.length >= 2) {
-            //   await UsbSerialManager.tryRequestPermission(deviceList[1].deviceId);
-            // }
           } catch (error) {
             console.error('获取设备列表失败:', error);
           }
-          timer = setInterval(fetchDevices, 1000);
         }
+        timer = setInterval(fetchDevices, 1000);
       }
     );
 
-    return () => clearInterval(timer);
+    return () => timer && clearInterval(timer);
   }, []);
 
   return (
     <ScrollView contentInsetAdjustmentBehavior="automatic">
       {/* 设备列表 */}
-      <View style={styles.deviceList}>
-        <Text style={styles.sectionTitle}>已连接的设备：</Text>
-        {devices.map((device, index) => (
-          <View key={index} style={styles.deviceItem}>
-            <Text>设备 {index + 1}</Text>
-            <Text>设备ID: {device.deviceId}</Text>
-            <Text>厂商ID: {device.vendorId}</Text>
-            <Text>产品ID: {device.productId}</Text>
-            <Text>序列号: {device.serialNumber}</Text>
-          </View>
-        ))}
-      </View>
+      {/*<View style={styles.deviceList}>*/}
+      {/*  <Text style={styles.sectionTitle}>已连接的设备：</Text>*/}
+      {/*  {devices.map((device, index) => (*/}
+      {/*    <View key={index} style={styles.deviceItem}>*/}
+      {/*      <Text>设备 {index + 1}</Text>*/}
+      {/*      <Text>设备ID: {device.deviceId}</Text>*/}
+      {/*      <Text>厂商ID: {device.vendorId}</Text>*/}
+      {/*      <Text>产品ID: {device.productId}</Text>*/}
+      {/*      <Text>序列号: {device.serialNumber}</Text>*/}
+      {/*    </View>*/}
+      {/*  ))}*/}
+      {/*</View>*/}
 
       {/* 相机预览区域 */}
       <View style={styles.cameraContainer}>
