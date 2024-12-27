@@ -19,3 +19,10 @@ buildscript {
 }
 
 apply plugin: "com.facebook.react.rootproject"
+
+allprojects {
+    repositories {
+        // 其他仓库配置...
+        maven { url 'https://jitpack.io' }
+    }
+}

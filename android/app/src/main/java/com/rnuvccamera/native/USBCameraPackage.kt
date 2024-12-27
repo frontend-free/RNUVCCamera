@@ -5,6 +5,7 @@ import com.facebook.react.bridge.NativeModule
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.uimanager.ViewManager
 import com.rnuvccamera.native.uvc.USBCameraViewManager
+import com.rnuvccamera.native.uvc.UsbDeviceModule
 
 class USBCameraPackage : ReactPackage {
     override fun createViewManagers(reactContext: ReactApplicationContext): List<ViewManager<*, *>> {

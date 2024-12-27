@@ -2,7 +2,6 @@ import React, {FC, useEffect, useRef} from 'react';
 import {Header} from 'react-native/Libraries/NewAppScreen';
 import {Button, ScrollView, StyleSheet, Text, ToastAndroid, View} from 'react-native';
 import {USBCamera} from '../../components/USBCamera';
-import {UsbSerialManager} from 'react-native-usb-serialport-for-android';
 import {PERMISSIONS, request, requestMultiple} from "react-native-permissions";
 import UsbDeviceManager from '../../native/UsbDeviceModule';
 interface UsbDevice {

@@ -12,6 +12,8 @@ import com.jiangdg.usb.USBMonitor
 class UsbDeviceModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
     private var mCameraClient: MultiCameraClient? = null
     private val TAG = "UsbDeviceModule"
+    private var pendingPermissionPromise: Promise? = null
+    private var pendingPermissionDeviceId: Int? = null
 
     companion object {
         private val deviceCtrlBlockMap = mutableMapOf<Int, USBMonitor.UsbControlBlock>()
@@ -56,6 +58,12 @@ class UsbDeviceModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
                         deviceCtrlBlockMap[device.deviceId] = block
                     }
                     
+                    if (device.deviceId == pendingPermissionDeviceId) {
+                        pendingPermissionPromise?.resolve(true)
+                        pendingPermissionPromise = null
+                        pendingPermissionDeviceId = null
+                    }
+
                     val params = Arguments.createMap().apply {
                         putInt("deviceId", it.deviceId)
                     }
@@ -76,6 +84,12 @@ class UsbDeviceModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
             override fun onCancelDev(device: UsbDevice?) {
                 device?.let {
+                    if (device.deviceId == pendingPermissionDeviceId) {
+                        pendingPermissionPromise?.resolve(false)
+                        pendingPermissionPromise = null
+                        pendingPermissionDeviceId = null
+                    }
+
                     val params = Arguments.createMap().apply {
                         putInt("deviceId", it.deviceId)
                     }
@@ -119,8 +133,10 @@ class UsbDeviceModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
                 return
             }
 
+            pendingPermissionPromise = promise
+            pendingPermissionDeviceId = deviceId
+
             mCameraClient?.requestPermission(device)
-            promise.resolve(null)
         } catch (e: Exception) {
             promise.reject("ERROR", e.message)
         }

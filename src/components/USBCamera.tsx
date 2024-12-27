@@ -7,7 +7,7 @@ import {
   UIManager,
 } from 'react-native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {UsbSerialManager} from 'react-native-usb-serialport-for-android';
+import UsbDeviceModule from "../native/UsbDeviceModule.ts";
 
 interface USBCameraProps extends ViewProps {
   deviceId?: string;
@@ -62,12 +62,12 @@ export const USBCamera: React.FC<USBCameraProps> = props => {
   }, [deviceId, resolution, isConnected]);
 
   const findAndRequestPermission = useCallback(async deviceId => {
-    const deviceList = await UsbSerialManager.list();
+    const deviceList = await UsbDeviceModule.getDeviceList();
     const device = deviceList.find(x => x.deviceId == Number(deviceId));
     if (!device) {
       setIsConnected(false);
     }
-    const result = await UsbSerialManager.tryRequestPermission(
+    const result = await UsbDeviceModule.requestPermission(
       Number(deviceId),
     );
     setIsConnected(result);
