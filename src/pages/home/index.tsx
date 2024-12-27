@@ -1,15 +1,9 @@
 import React, {FC, useEffect, useRef} from 'react';
-import {Header} from 'react-native/Libraries/NewAppScreen';
 import {Button, ScrollView, StyleSheet, Text, ToastAndroid, View} from 'react-native';
 import {USBCamera} from '../../components/USBCamera';
 import {PERMISSIONS, request, requestMultiple} from "react-native-permissions";
-import UsbDeviceManager from '../../native/UsbDeviceModule';
-interface UsbDevice {
-  deviceId: string;
-  vendorId: number;
-  productId: number;
-  serialNumber: string;
-}
+import UsbDeviceManager, {UsbDevice} from '../../native/UsbDeviceModule';
+
 
 const Home: FC = () => {
   const [devices, setDevices] = React.useState<UsbDevice[]>([]);
@@ -19,17 +13,20 @@ const Home: FC = () => {
     // 监听设备插入
     const attachSubscription = UsbDeviceManager.addDeviceAttachedListener(device => {
       console.log('设备插入:', device);
+      getDevices();
     });
 
     // 监听设备拔出
     const detachSubscription = UsbDeviceManager.addDeviceDetachedListener(device => {
       console.log('设备拔出:', device);
+      getDevices();
     });
 
     // 获取设备列表
     const getDevices = async () => {
       try {
         const devices = await UsbDeviceManager.getDeviceList();
+        setDevices(devices)
         console.log('设备列表:', devices);
       } catch (error) {
         console.error('获取设备列表失败:', error);
@@ -80,7 +77,7 @@ const Home: FC = () => {
           <USBCamera
             ref={camera1}
             style={styles.cameraView}
-            deviceId={devices[0]?.deviceId}
+            deviceId={devices[0]?.deviceId || ''}
             resolution={{width: 640, height: 600}}
             onDeviceConnected={(event) => console.log('相机1已连接', event)}
             onDeviceDisconnected={(event) => console.log('相机1已断开', event)}
@@ -92,7 +89,7 @@ const Home: FC = () => {
           <Text style={styles.cameraTitle}>相机 2</Text>
           <USBCamera
             style={styles.cameraView}
-            deviceId={devices[1]?.deviceId}
+            deviceId={devices[1]?.deviceId || ''}
             resolution={{width: 640, height: 600}}
             onDeviceConnected={(event) => console.log('相机1已连接', event)}
             onDeviceDisconnected={(event) => console.log('相机1已断开', event)}

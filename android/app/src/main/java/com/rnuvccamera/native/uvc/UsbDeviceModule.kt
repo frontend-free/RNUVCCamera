@@ -7,6 +7,7 @@ import android.util.Log
 import com.facebook.react.bridge.*
 import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.jiangdg.ausbc.MultiCameraClient
+import com.jiangdg.ausbc.callback.IDeviceConnectCallBack
 import com.jiangdg.usb.USBMonitor
 
 class UsbDeviceModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
@@ -30,7 +31,7 @@ class UsbDeviceModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     override fun getName() = "UsbDeviceModule"
 
     private fun initMultiCamera() {
-        mCameraClient = MultiCameraClient(reactApplicationContext, object : MultiCameraClient.IDeviceConnectCallBack {
+        mCameraClient = MultiCameraClient(reactApplicationContext, object : IDeviceConnectCallBack {
             override fun onAttachDev(device: UsbDevice?) {
                 device?.let {
                     val params = Arguments.createMap().apply {
@@ -175,10 +176,12 @@ class UsbDeviceModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         // Keep: Required for RN built in Event Emitter Calls
     }
 
-    override fun onCatalystInstanceDestroy() {
-        super.onCatalystInstanceDestroy()
+    override fun invalidate() {
+        super.invalidate()
         mCameraClient?.unRegister()
         mCameraClient?.destroy()
         mCameraClient = null
+        pendingPermissionPromise = null
+        pendingPermissionDeviceId = null
     }
 } 

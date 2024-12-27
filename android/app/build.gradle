@@ -115,10 +115,9 @@ dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
     //UVC camera usb摄像头
-    api('com.github.jiangdongguo.AndroidUSBCamera:libausbc:3.3.3', {
-        exclude group: 'com.github.jiangdongguo.AndroidUSBCamera', module: 'libuvc'
-    })
-    api 'com.github.jiangdongguo.AndroidUSBCamera:libuvc:3.3.3'
+    api('com.github.jiangdongguo.AndroidUSBCamera:libausbc:3.3.3')
+    api('com.github.jiangdongguo.AndroidUSBCamera:libuvccommon:3.3.3')
+    api('com.github.jiangdongguo.AndroidUSBCamera:libuvc:3.3.3')
     implementation 'androidx.constraintlayout:constraintlayout:2.2.0'
     implementation 'androidx.databinding:databinding-runtime:8.7.3'
     implementation 'androidx.recyclerview:recyclerview:1.3.2'
