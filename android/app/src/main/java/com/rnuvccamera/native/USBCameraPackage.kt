@@ -12,6 +12,6 @@ class USBCameraPackage : ReactPackage {
     }
 
     override fun createNativeModules(reactContext: ReactApplicationContext): List<NativeModule> {
-        return emptyList()
+        return listOf(UsbDeviceModule(reactContext))
     }
 } 

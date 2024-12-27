@@ -33,6 +33,8 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
     private var mCameraClient: MultiCameraClient? = null
     private val mCameraMap = hashMapOf<Int, MultiCameraClient.ICamera>()
     private var mCurrentCamera: SettableFuture<MultiCameraClient.ICamera>? = null
+    protected var surfaceInited = false
+    private var mCurrentDevice: UsbDevice? = null
 
     private val mRequestPermission: AtomicBoolean by lazy {
         AtomicBoolean(false)
@@ -74,6 +76,43 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
 
     override fun clear() {
         unRegisterMultiCamera()
+    }
+
+    protected fun setDevice(device: UsbDevice?) {
+        mCurrentDevice = device;
+        if(surfaceInited) {
+            if (device != null) {
+                openDevice(device)
+            }
+            return
+        }
+    }
+
+    protected fun openDevice(device:UsbDevice) {
+        context?.let {
+            if (mCameraMap.containsKey(device.deviceId)) {
+                return
+            }
+            generateCamera(it, device).apply {
+                mCameraMap[device.deviceId] = this
+            }
+            mCameraMap[device.deviceId]?.apply {
+                UsbDeviceModule.getCtrlBlock(device.deviceId)?.let { block ->
+                    setUsbControlBlock(block)
+                }
+            }?.also { camera ->
+                try {
+                    mCurrentCamera?.cancel(true)
+                    mCurrentCamera = null
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+                mCurrentCamera = SettableFuture()
+                mCurrentCamera?.set(camera)
+                openCamera(mCameraView)
+                Logger.i(TAG, "camera connection. pid: ${device.productId}, vid: ${device.vendorId}")
+            }
+        }
     }
 
     protected fun registerMultiCamera() {
@@ -170,12 +209,19 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
 
     private fun handleTextureView(textureView: TextureView) {
         Log.d("test1", "66661"+textureView)
-        Toast.makeText(requireContext(), "66661", Toast.LENGTH_SHORT).show()
+//        Toast.makeText(requireContext(), "66661", Toast.LENGTH_SHORT).show()
         textureView.surfaceTextureListener = object : TextureView.SurfaceTextureListener {
             override fun onSurfaceTextureAvailable(p0: SurfaceTexture, p1: Int, p2: Int) {
                 Log.d("test1", "66662")
-                Toast.makeText(requireContext(), "66662", Toast.LENGTH_SHORT).show()
-                registerMultiCamera()
+//                Toast.makeText(requireContext(), "66662"+(getDefaultCamera()==null), Toast.LENGTH_SHORT).show()
+                surfaceInited = true;
+                val defaultCamera = mCurrentDevice
+//                Toast.makeText(requireContext(), "66663"+(defaultCamera==null), Toast.LENGTH_SHORT).show()
+                if (defaultCamera == null) {
+                    return
+                }
+                openDevice(defaultCamera)
+//                registerMultiCamera()
             }
 
             override fun onSurfaceTextureSizeChanged(p0: SurfaceTexture, p1: Int, p2: Int) {
@@ -184,7 +230,8 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
 
             override fun onSurfaceTextureDestroyed(p0: SurfaceTexture): Boolean {
                 Log.d("test1", "66663")
-                unRegisterMultiCamera()
+//                unRegisterMultiCamera()
+                surfaceInited = false;
                 return false
             }
 

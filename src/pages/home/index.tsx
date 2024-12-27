@@ -4,7 +4,7 @@ import {Button, ScrollView, StyleSheet, Text, ToastAndroid, View} from 'react-na
 import {USBCamera} from '../../components/USBCamera';
 import {UsbSerialManager} from 'react-native-usb-serialport-for-android';
 import {PERMISSIONS, request, requestMultiple} from "react-native-permissions";
-
+import UsbDeviceManager from '../../native/UsbDeviceModule';
 interface UsbDevice {
   deviceId: string;
   vendorId: number;
@@ -14,31 +14,47 @@ interface UsbDevice {
 
 const Home: FC = () => {
   const [devices, setDevices] = React.useState<UsbDevice[]>([]);
+  const [hasCameraPermission, setHasCameraPermission] = React.useState(false);
   const camera1 = useRef<any>(null);
+  useEffect(() => {
+    // 监听设备插入
+    const attachSubscription = UsbDeviceManager.addDeviceAttachedListener(device => {
+      console.log('设备插入:', device);
+    });
 
+    // 监听设备拔出
+    const detachSubscription = UsbDeviceManager.addDeviceDetachedListener(device => {
+      console.log('设备拔出:', device);
+    });
+
+    // 获取设备列表
+    const getDevices = async () => {
+      try {
+        const devices = await UsbDeviceManager.getDeviceList();
+        console.log('设备列表:', devices);
+      } catch (error) {
+        console.error('获取设备列表失败:', error);
+      }
+    };
+
+    getDevices();
+
+    return () => {
+      attachSubscription.remove();
+      detachSubscription.remove();
+    };
+  }, []);
 
   useEffect(() => {
-    let fetchDevices:any = null;
-    let timer:NodeJS.Timeout;
     requestMultiple([
       PERMISSIONS.ANDROID.CAMERA,
       PERMISSIONS.ANDROID.WRITE_EXTERNAL_STORAGE,
     ]).then((status) => {
-
-        // …
-        fetchDevices = async () => {
-          try {
-            const deviceList = await UsbSerialManager.list();
-            setDevices(deviceList);
-          } catch (error) {
-            console.error('获取设备列表失败:', error);
-          }
+        if(status[PERMISSIONS.ANDROID.CAMERA] === 'granted'){
+            setHasCameraPermission(true);
         }
-        timer = setInterval(fetchDevices, 1000);
       }
     );
-
-    return () => timer && clearInterval(timer);
   }, []);
 
   return (

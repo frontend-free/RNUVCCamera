@@ -103,25 +103,72 @@ class USBCameraViewManager : ViewGroupManager<FrameLayout>() {
         return fragment as? USBCameraView
     }
 
-    @ReactProp(name = "deviceId")
-    fun setDeviceId(view: FrameLayout, deviceId: Int) {
-//        val fragment = getFragment(view)
-//        fragment?.setDeviceId(deviceId)
-        try {
-            val fragment = getFragment(view)
-            fragment?.setDeviceId(deviceId)
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
+    companion object {
+        const val COMMAND_SET_DEVICE_ID = 1
+        const val COMMAND_SET_RESOLUTION = 2
     }
 
-    @ReactProp(name = "resolution")
-    fun setResolution(view: FrameLayout, resolution: ReadableMap?) {
-        val fragment = getFragment(view)
-        resolution?.let {
-            val width = it.getInt("width")
-            val height = it.getInt("height")
-            fragment?.setResolution(width, height)
+    override fun getCommandsMap(): Map<String, Int> {
+        return mapOf(
+            "setDeviceId" to COMMAND_SET_DEVICE_ID,
+            "setResolution" to COMMAND_SET_RESOLUTION
+        )
+    }
+
+    override fun getExportedCustomDirectEventTypeConstants(): MutableMap<String, Any>? {
+        return MapBuilder.builder<String, Any>()
+            .put("setDeviceId", 
+                MapBuilder.of(
+                    "registrationName",
+                    "onSetDeviceId"
+                ))
+            .put("setResolution",
+                MapBuilder.of(
+                    "registrationName",
+                    "onSetResolution"
+                ))
+            .build()
+    }
+
+    override fun receiveCommand(
+        root: FrameLayout,
+        commandId: Int,
+        args: ReadableArray?
+    ) {
+        super.receiveCommand(root, commandId, args)
+        when (commandId) {
+            COMMAND_SET_DEVICE_ID -> {
+                args?.getInt(0)?.let { deviceId ->
+                    try {
+                        root.post {
+                            val fragment = getFragment(root)
+                            if (fragment == null) {
+                                Log.d("TestView", "Fragment not ready, retrying...")
+                                root.postDelayed({
+                                    val retryFragment = getFragment(root)
+                                    retryFragment?.setDeviceId(deviceId)
+                                }, 500)
+                            } else {
+                                fragment.setDeviceId(deviceId)
+                            }
+                        }
+                    } catch (e: Exception) {
+                        Log.e("TestView", "Error in setDeviceId command: ${e.message}")
+                    }
+                }
+            }
+            COMMAND_SET_RESOLUTION -> {
+                try {
+                    val width = args?.getMap(0)?.getInt("width") ?: return
+                    val height = args.getMap(0)?.getInt("height") ?: return
+                    root.post {
+                        val fragment = getFragment(root)
+                        fragment?.setResolution(width, height)
+                    }
+                } catch (e: Exception) {
+                    Log.e("TestView", "Error in setResolution command: ${e.message}")
+                }
+            }
         }
     }
 }

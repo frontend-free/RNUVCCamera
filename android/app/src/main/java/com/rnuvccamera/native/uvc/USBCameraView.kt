@@ -85,10 +85,19 @@ class USBCameraView : CameraFragment() {
     }
 
     fun setDeviceId(deviceId: Int?) {
-
-//        return;
         if (currentDeviceId == deviceId) return
         currentDeviceId = deviceId
+        var isSet = false
+        getUsbDeviceList()?.forEach { device ->
+            if (device.deviceId == deviceId) {
+                Toast.makeText(requireContext(), "设备id"+deviceId, Toast.LENGTH_SHORT).show()
+                isSet = true
+                setDevice(device)
+            }
+        }
+        if(!isSet) {
+            setDevice(null);
+        }
         return;
 
         // 关闭当前摄像头
