@@ -55,20 +55,6 @@ const Home: FC = () => {
 
   return (
     <ScrollView contentInsetAdjustmentBehavior="automatic">
-      {/* 设备列表 */}
-      {/*<View style={styles.deviceList}>*/}
-      {/*  <Text style={styles.sectionTitle}>已连接的设备：</Text>*/}
-      {/*  {devices.map((device, index) => (*/}
-      {/*    <View key={index} style={styles.deviceItem}>*/}
-      {/*      <Text>设备 {index + 1}</Text>*/}
-      {/*      <Text>设备ID: {device.deviceId}</Text>*/}
-      {/*      <Text>厂商ID: {device.vendorId}</Text>*/}
-      {/*      <Text>产品ID: {device.productId}</Text>*/}
-      {/*      <Text>序列号: {device.serialNumber}</Text>*/}
-      {/*    </View>*/}
-      {/*  ))}*/}
-      {/*</View>*/}
-
       {/* 相机预览区域 */}
       <View style={styles.cameraContainer}>
         {/* 相机1 */}

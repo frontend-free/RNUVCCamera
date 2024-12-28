@@ -17,9 +17,7 @@ import com.jiangdg.ausbc.callback.ICameraStateCallBack
 import com.jiangdg.ausbc.widget.AspectRatioTextureView
 import com.jiangdg.ausbc.widget.IAspectRatio
 import com.rnuvccamera.R
-import com.rnuvccamera.databinding.ActivityUvcCameraBinding
 import com.rnuvccamera.databinding.FragmentDemoBinding
-import com.rnuvccamera.databinding.ItemUvcCameraLayoutBinding
 
 class USBCameraView : CameraFragment() {
     lateinit var mViewBinding: FragmentDemoBinding
@@ -97,37 +95,6 @@ class USBCameraView : CameraFragment() {
         }
         if(!isSet) {
             setDevice(null);
-        }
-        return;
-
-        // 关闭当前摄像头
-        //closeCamera()
-
-        // 如果设置为 null，直接返回
-        if (deviceId == null) return
-
-        Toast.makeText(requireContext(), "设备id"+deviceId, Toast.LENGTH_SHORT).show()
-        // 获取所有 USB 设备
-        getUsbDeviceList()?.forEach { device ->
-            if (device.deviceId == deviceId) {
-                Toast.makeText(requireContext(), "权限"+hasPermission(device), Toast.LENGTH_SHORT).show()
-//                setDevice(device)
-                return;
-                Toast.makeText(requireContext(), "开始申请权限"+getUsbDeviceList()?.size, Toast.LENGTH_SHORT).show()
-                generateCamera(requireContext(), device)
-                switchCamera(device)
-                return;
-                // 检查权限
-                if (!hasPermission(device)) {
-                    // 申请权限
-                    requestPermission(device)
-                } else {
-                    // 已有权限，直接打开摄像头
-                    Toast.makeText(requireContext(), "已有权限", Toast.LENGTH_SHORT).show()
-                    switchCamera(device)
-                }
-                return
-            }
         }
     }
 

@@ -41,28 +41,18 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
     }
 
     override fun initView() {
-        Log.d("test1", "3333"+getCameraView())
         when (val cameraView = getCameraView()) {
             is TextureView -> {
-                Log.d("test1", "6666")
                 handleTextureView(cameraView)
                 cameraView
             }
-            is SurfaceView -> {
-                Log.d("test1", "7777")
-                handleSurfaceView(cameraView)
-                cameraView
-            }
             else -> {
-                Log.d("test1", "9999")
                 null
             }
         }.apply {
-            Log.d("test1", "4444"+this)
             mCameraView = this
             // offscreen render
             if (this == null) {
-                Log.d("test1", "5555")
                 registerMultiCamera()
                 return
             }
@@ -239,24 +229,6 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
 
             }
         }
-    }
-
-    private fun handleSurfaceView(surfaceView: SurfaceView) {
-        Log.d("test1", "777771")
-        surfaceView.holder.addCallback(object : SurfaceHolder.Callback {
-            override fun surfaceCreated(p0: SurfaceHolder) {
-                Log.d("test1", "88888")
-                registerMultiCamera()
-            }
-
-            override fun surfaceChanged(p0: SurfaceHolder, p1: Int, p2: Int, p3: Int) {
-                surfaceSizeChanged(p2, p3)
-            }
-
-            override fun surfaceDestroyed(p0: SurfaceHolder) {
-                unRegisterMultiCamera()
-            }
-        })
     }
 
     /**
