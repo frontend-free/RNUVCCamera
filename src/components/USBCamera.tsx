@@ -6,8 +6,8 @@ import {
   findNodeHandle,
   UIManager,
 } from 'react-native';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import UsbDeviceModule from "../native/UsbDeviceModule.ts";
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import UsbDeviceModule, {UsbDevice} from "../native/UsbDeviceModule";
 
 interface USBCameraProps extends ViewProps {
   deviceId?: string;
@@ -15,8 +15,8 @@ interface USBCameraProps extends ViewProps {
     width: number;
     height: number;
   };
-  onDeviceConnected?: (event: any) => void;
-  onDeviceDisconnected?: (event: any) => void;
+  onDeviceConnected?: (event: Pick<UsbDevice, 'deviceId'>) => void;
+  onDeviceDisconnected?: (event: Pick<UsbDevice, 'deviceId'>) => void;
   onPreviewStarted?: (event: any) => void;
   onPreviewStopped?: (event: any) => void;
 }
@@ -27,11 +27,9 @@ const RNUSBCameraView = requireNativeComponent(ComponentName);
 const Commands = UIManager.getViewManagerConfig(ComponentName)?.Commands;
 
 export const USBCamera: React.FC<USBCameraProps> = props => {
-  const {deviceId, resolution} = props;
+  const {deviceId, resolution, onDeviceConnected, onDeviceDisconnected} = props;
   const viewRef = useRef(null);
   const [isConnected, setIsConnected] = useState(false);
-  const intervalRef = useRef<any>(null);
-  const isConnectedRef = useRef(false);
 
   const setDeviceIdToNative = useCallback((id: number) => {
     const node = findNodeHandle(viewRef.current);
@@ -44,45 +42,82 @@ export const USBCamera: React.FC<USBCameraProps> = props => {
     }
   }, []);
 
-  const setResolutionToNative = useCallback((res: {width: number; height: number}) => {
-    const node = findNodeHandle(viewRef.current);
-    if (node) {
-      UIManager.dispatchViewManagerCommand(
-        node,
-        Commands.setResolution,
-        [res]
-      );
-    }
-  }, []);
-
   useEffect(() => {
     if (viewRef.current && isConnected) {
       setDeviceIdToNative(Number(deviceId));
     }
-  }, [deviceId, resolution, isConnected]);
-
-  const findAndRequestPermission = useCallback(async deviceId => {
-    const deviceList = await UsbDeviceModule.getDeviceList();
-    const device = deviceList.find(x => x.deviceId == Number(deviceId));
-    if (!device) {
-      setIsConnected(false);
-    }
-    const result = await UsbDeviceModule.requestPermission(
-      Number(deviceId),
-    );
-    setIsConnected(result);
-  }, []);
+  }, [deviceId, resolution, isConnected, setDeviceIdToNative]);
 
   useEffect(() => {
-    intervalRef.current = setInterval(() => {
-      if (deviceId && !isConnectedRef.current) {
-        findAndRequestPermission(deviceId);
+    if (!deviceId) return;
+
+    // 检查初始权限状态
+    const checkInitialPermission = async () => {
+      const hasPermission = await UsbDeviceModule.hasPermission(Number(deviceId));
+      if (hasPermission) {
+        setIsConnected(true);
       }
-    }, 2000);
-    return () => {
-      clearInterval(intervalRef.current);
     };
-  }, [deviceId]);
+    checkInitialPermission();
+
+    // 设备连接事件
+    const connectedSubscription = UsbDeviceModule.addDeviceConnectedListener(
+      (device) => {
+        if (device.deviceId === Number(deviceId)) {
+          setIsConnected(true);
+          onDeviceConnected?.(device);
+        }
+      }
+    );
+
+    // 设备断开事件
+    const disconnectedSubscription = UsbDeviceModule.addDeviceDisconnectedListener(
+      (device) => {
+        if (device.deviceId === Number(deviceId)) {
+          setIsConnected(false);
+          onDeviceDisconnected?.(device);
+        }
+      }
+    );
+
+    // 设备权限被拒绝事件
+    const permissionDeniedSubscription = UsbDeviceModule.addDevicePermissionDeniedListener(
+      (device) => {
+        if (device.deviceId === Number(deviceId)) {
+          setIsConnected(false);
+        }
+      }
+    );
+
+    return () => {
+      connectedSubscription.remove();
+      disconnectedSubscription.remove();
+      permissionDeniedSubscription.remove();
+    };
+  }, [deviceId, onDeviceConnected, onDeviceDisconnected]);
+
+  // 自动请求权限
+  useEffect(() => {
+    if (!deviceId || isConnected) return;
+
+    const requestDevicePermission = async () => {
+      try {
+        const deviceList = await UsbDeviceModule.getDeviceList();
+        const device = deviceList.find(x => x.deviceId === Number(deviceId));
+        if (device) {
+          const granted = await UsbDeviceModule.requestPermission(device.deviceId);
+          if (!granted) {
+            setIsConnected(false);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to request device permission:', error);
+      }
+    };
+
+    const timer = setInterval(requestDevicePermission, 2000);
+    return () => clearInterval(timer);
+  }, [deviceId, isConnected]);
 
   return (
     <View

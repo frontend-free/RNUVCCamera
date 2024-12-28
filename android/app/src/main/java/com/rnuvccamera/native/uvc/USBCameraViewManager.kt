@@ -172,26 +172,3 @@ class USBCameraViewManager : ViewGroupManager<FrameLayout>() {
         }
     }
 }
-
-    /**
-     * Replace your React Native view with a custom fragment
-     */
-//    fun createFragment(root: FrameLayout, reactNativeViewId: Int) {
-//        val parentView = root.findViewById<View>(reactNativeViewId).parent as ViewGroup
-////        setupLayout(parentView)
-//        val myFragment: MyFragment = MyFragment()
-//        reactContext.getCurrentActivity().supportFragmentManager
-//            .beginTransaction()
-//            .replace(reactNativeViewId, myFragment, reactNativeViewId.toString())
-//            .commit()
-//    }
-
-//    fun setupLayout(view: View) {
-//        Choreographer.getInstance().postFrameCallback(object : Choreographer.FrameCallback() {
-//            override fun doFrame(frameTimeNanos: Long) {
-//                manuallyLayoutChildren(view)
-//                view.viewTreeObserver.dispatchOnGlobalLayout()
-//                Choreographer.getInstance().postFrameCallback(this)
-//            }
-//        })
-//    }

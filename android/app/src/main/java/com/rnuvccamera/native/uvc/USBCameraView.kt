@@ -22,8 +22,6 @@ import com.rnuvccamera.databinding.FragmentDemoBinding
 class USBCameraView : CameraFragment() {
     lateinit var mViewBinding: FragmentDemoBinding
     private var currentDeviceId: Int? = null
-    private var currentWidth: Int = 1080
-    private var currentHeight: Int = 634
 
     override fun getRootView(inflater: LayoutInflater, container: ViewGroup?): View? {
         mViewBinding = FragmentDemoBinding.inflate(inflater, container, false)
@@ -49,7 +47,8 @@ class USBCameraView : CameraFragment() {
     }
 
     private fun handleCameraClosed() {
-        Toast.makeText(requireContext(), "handleCameraClosed", Toast.LENGTH_SHORT).show()
+        //不要加，requireContext会导致崩溃
+        //Toast.makeText(requireContext(), "handleCameraClosed", Toast.LENGTH_SHORT).show()
     }
 
     private fun handleCameraOpened() {
@@ -72,14 +71,6 @@ class USBCameraView : CameraFragment() {
     private fun getUsbDeviceList(): List<UsbDevice>? {
         val usbManager = requireContext().getSystemService(Context.USB_SERVICE) as? UsbManager
         return usbManager?.deviceList?.values?.toList()
-    }
-
-    /**
-     * 检查是否有 USB 设备权限
-     */
-    private fun hasPermission(device: UsbDevice): Boolean {
-        val usbManager = requireContext().getSystemService(Context.USB_SERVICE) as? UsbManager
-        return usbManager?.hasPermission(device) ?: false
     }
 
     fun setDeviceId(deviceId: Int?) {
