@@ -8,7 +8,6 @@ import android.view.*
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.RelativeLayout
-import android.widget.Toast
 import com.jiangdg.ausbc.MultiCameraClient
 import com.jiangdg.ausbc.base.BaseFragment
 import com.jiangdg.ausbc.camera.bean.PreviewSize
@@ -20,9 +19,7 @@ import com.jiangdg.ausbc.render.env.RotateType
 import com.jiangdg.ausbc.utils.Logger
 import com.jiangdg.ausbc.utils.SettableFuture
 import com.jiangdg.ausbc.widget.IAspectRatio
-import com.jiangdg.usb.USBMonitor
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicBoolean
 
 /**Extends from BaseFragment for one uvc camera
  *
@@ -30,15 +27,10 @@ import java.util.concurrent.atomic.AtomicBoolean
  */
 abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
     private var mCameraView: IAspectRatio? = null
-    private var mCameraClient: MultiCameraClient? = null
     private val mCameraMap = hashMapOf<Int, MultiCameraClient.ICamera>()
     private var mCurrentCamera: SettableFuture<MultiCameraClient.ICamera>? = null
     protected var surfaceInited = false
     private var mCurrentDevice: UsbDevice? = null
-
-    private val mRequestPermission: AtomicBoolean by lazy {
-        AtomicBoolean(false)
-    }
 
     override fun initView() {
         when (val cameraView = getCameraView()) {
@@ -107,82 +99,6 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
 
     protected fun registerMultiCamera() {
         Log.d("test1", "4444")
-        mCameraClient = MultiCameraClient(requireContext(), object : IDeviceConnectCallBack {
-            override fun onAttachDev(device: UsbDevice?) {
-                device ?: return
-                context?.let {
-                    if (mCameraMap.containsKey(device.deviceId)) {
-                        return
-                    }
-                    generateCamera(it, device).apply {
-                        mCameraMap[device.deviceId] = this
-                    }
-                    Toast.makeText(requireContext(), "device insert: ${device.productId}, ${device.vendorId}", Toast.LENGTH_SHORT).show()
-                    // Initiate permission request when device insertion is detected
-                    // If you want to open the specified camera, you need to override getDefaultCamera()
-                    if (mRequestPermission.get()) {
-                        return@let
-                    }
-                    getDefaultCamera()?.apply {
-                        if (vendorId == device.vendorId && productId == device.productId) {
-                            Logger.i(TAG, "default camera pid: $productId, vid: $vendorId")
-                            requestPermission(device)
-                        }
-                        return@let
-                    }
-                    requestPermission(device)
-                }
-            }
-
-            override fun onDetachDec(device: UsbDevice?) {
-                mCameraMap.remove(device?.deviceId)?.apply {
-                    setUsbControlBlock(null)
-                }
-                mRequestPermission.set(false)
-                try {
-                    mCurrentCamera?.cancel(true)
-                    mCurrentCamera = null
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-            }
-
-            override fun onConnectDev(device: UsbDevice?, ctrlBlock: USBMonitor.UsbControlBlock?) {
-                device ?: return
-                ctrlBlock ?: return
-                context ?: return
-                mCameraMap[device.deviceId]?.apply {
-                    setUsbControlBlock(ctrlBlock)
-                }?.also { camera ->
-                    try {
-                        mCurrentCamera?.cancel(true)
-                        mCurrentCamera = null
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-                    mCurrentCamera = SettableFuture()
-                    mCurrentCamera?.set(camera)
-                    openCamera(mCameraView)
-                    Logger.i(TAG, "camera connection. pid: ${device.productId}, vid: ${device.vendorId}")
-                }
-            }
-
-            override fun onDisConnectDec(device: UsbDevice?, ctrlBlock: USBMonitor.UsbControlBlock?) {
-                closeCamera()
-                mRequestPermission.set(false)
-            }
-
-            override fun onCancelDev(device: UsbDevice?) {
-                mRequestPermission.set(false)
-                try {
-                    mCurrentCamera?.cancel(true)
-                    mCurrentCamera = null
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-            }
-        })
-        mCameraClient?.register()
     }
 
     protected fun unRegisterMultiCamera() {
@@ -190,12 +106,7 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
             it.closeCamera()
         }
         mCameraMap.clear()
-        mCameraClient?.unRegister()
-        mCameraClient?.destroy()
-        mCameraClient = null
     }
-
-    protected fun getDeviceList() = mCameraClient?.getDeviceList()
 
     private fun handleTextureView(textureView: TextureView) {
         Log.d("test1", "66661"+textureView)
@@ -246,16 +157,6 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
     }
 
     /**
-     * Request permission
-     *
-     * @param device see [UsbDevice]
-     */
-    protected fun requestPermission(device: UsbDevice?) {
-        mRequestPermission.set(true)
-        mCameraClient?.requestPermission(device)
-    }
-
-    /**
      * Generate camera
      *
      * @param ctx context [Context]
@@ -288,22 +189,6 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
      * Get default effect
      */
     protected fun getDefaultEffect() = getCurrentCamera()?.getDefaultEffect()
-
-    /**
-     * Switch camera
-     *
-     * @param usbDevice camera usb device
-     */
-    protected fun switchCamera(usbDevice: UsbDevice) {
-        Toast.makeText(context, "switch camera"+(getCurrentCamera()==null), Toast.LENGTH_SHORT).show()
-        getCurrentCamera()?.closeCamera()
-        try {
-            Thread.sleep(500)
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-        requestPermission(usbDevice)
-    }
 
     /**
      * Is camera opened
