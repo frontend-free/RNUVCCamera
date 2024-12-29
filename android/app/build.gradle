@@ -1,7 +1,6 @@
 apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
-apply plugin: "kotlin-android"
 
 /**
  * This is the configuration block to customize your React Native Android app.
@@ -106,18 +105,12 @@ android {
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
     }
-    buildFeatures {
-        dataBinding true
-    }
 }
 
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
-    //UVC camera usb摄像头
-    api('com.github.jiangdongguo.AndroidUSBCamera:libausbc:3.3.3')
-    api('com.github.jiangdongguo.AndroidUSBCamera:libuvc:3.3.3')
-    implementation 'androidx.databinding:databinding-runtime:8.7.3'
+
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")
     } else {

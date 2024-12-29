@@ -2067,6 +2067,11 @@
   resolved "https://registry.yarnpkg.com/@ungap/structured-clone/-/structured-clone-1.2.1.tgz#28fa185f67daaf7b7a1a8c1d445132c5d979f8bd"
   integrity sha512-fEzPV3hSkSMltkw152tJKNARhOupqbH96MZWyRjNaYZOMIzbrTeQDG+MTc6Mr2pgzFQzFxAfmhGDNP5QK++2ZA==
 
+"@yz1311/react-native-uvc-camera@^0.0.5":
+  version "0.0.5"
+  resolved "https://registry.yarnpkg.com/@yz1311/react-native-uvc-camera/-/react-native-uvc-camera-0.0.5.tgz#f8e1d5fdbf97c61f378f26eab4497f32166ab22d"
+  integrity sha512-8yqUhMLuZaFIp+2bqYyiU5Oj4Hc6tkXZNOzvbJFp/tpUWgIYvjjxOWDd/BcindtGRzG1q6CCFSmeb/B2XnmMZA==
+
 abort-controller@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/abort-controller/-/abort-controller-3.0.0.tgz#eaf54d53b62bae4138e809ca225c8439a6efb392"
@@ -5574,11 +5579,6 @@ react-native-permissions@^5.2.1:
   version "5.2.1"
   resolved "https://registry.yarnpkg.com/react-native-permissions/-/react-native-permissions-5.2.1.tgz#b028b7bc60d813588d8d3f2b80f19d1f67ba907f"
   integrity sha512-F8CaDVi+zYjl2pO4Fwh5n5SCi5s0TvvRzQnczb8nwkzHJTv6HqlO6Sj1ZmqrAeuCN06b5Ysu9BEWhK4qT4ekXg==
-
-react-native-usb-serialport-for-android@^0.5.0:
-  version "0.5.0"
-  resolved "https://registry.yarnpkg.com/react-native-usb-serialport-for-android/-/react-native-usb-serialport-for-android-0.5.0.tgz#19e71a7c48009ea2fefc1b80512ffce9e521b6c6"
-  integrity sha512-J+pQZBxcmlFbPGzBr/sUJkWRxNiJCzIIAbcDF4LySH6u/WY0/qe7Vdi/SCHTw+ukV9tfnanPAa/JxWR0JQwUOA==
 
 react-native@0.76.5:
   version "0.76.5"

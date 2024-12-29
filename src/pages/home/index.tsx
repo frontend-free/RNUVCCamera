@@ -1,8 +1,7 @@
 import React, {FC, useEffect, useRef} from 'react';
 import {Button, ScrollView, StyleSheet, Text, ToastAndroid, View} from 'react-native';
-import {USBCamera} from '../../components/USBCamera';
 import {PERMISSIONS, requestMultiple} from "react-native-permissions";
-import UsbDeviceManager, {UsbDevice} from '../../native/UVCDeviceModule.ts';
+import {UsbDevice, UVCCameraView, UVCDeviceModule} from '@yz1311/react-native-uvc-camera';
 
 
 const Home: FC = () => {
@@ -11,13 +10,13 @@ const Home: FC = () => {
   const camera1 = useRef<any>(null);
   useEffect(() => {
     // 监听设备插入
-    const attachSubscription = UsbDeviceManager.addDeviceAttachedListener(device => {
+    const attachSubscription = UVCDeviceModule.addDeviceAttachedListener(device => {
       console.log('设备插入:', device);
       getDevices();
     });
 
     // 监听设备拔出
-    const detachSubscription = UsbDeviceManager.addDeviceDetachedListener(device => {
+    const detachSubscription = UVCDeviceModule.addDeviceDetachedListener(device => {
       console.log('设备拔出:', device);
       getDevices();
     });
@@ -25,7 +24,7 @@ const Home: FC = () => {
     // 获取设备列表
     const getDevices = async () => {
       try {
-        const devices = await UsbDeviceManager.getDeviceList();
+        const devices = await UVCDeviceModule.getDeviceList();
         setDevices(devices)
         console.log('设备列表:', devices);
       } catch (error) {
@@ -60,11 +59,10 @@ const Home: FC = () => {
         {/* 相机1 */}
         <View style={styles.cameraWrapper}>
           <Text style={styles.cameraTitle}>相机 1</Text>
-          <USBCamera
+          <UVCCameraView
             ref={camera1}
             style={styles.cameraView}
             deviceId={devices[0]?.deviceId || ''}
-            resolution={{width: 640, height: 600}}
             onDeviceConnected={(event) => console.log('相机1已连接', event)}
             onDeviceDisconnected={(event) => console.log('相机1已断开', event)}
             onPreviewStarted={(event) => console.log('相机1开始预览', event)}
@@ -73,10 +71,9 @@ const Home: FC = () => {
         </View>
         <View style={styles.cameraWrapper}>
           <Text style={styles.cameraTitle}>相机 2</Text>
-          <USBCamera
+          <UVCCameraView
             style={styles.cameraView}
             deviceId={devices[1]?.deviceId || ''}
-            resolution={{width: 640, height: 600}}
             onDeviceConnected={(event) => console.log('相机1已连接', event)}
             onDeviceDisconnected={(event) => console.log('相机1已断开', event)}
             onPreviewStarted={(event) => console.log('相机1开始预览', event)}
