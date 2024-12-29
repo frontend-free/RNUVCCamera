@@ -13,14 +13,14 @@ import com.jiangdg.ausbc.MultiCameraClient
 import com.jiangdg.ausbc.callback.ICameraStateCallBack
 import com.jiangdg.ausbc.widget.AspectRatioTextureView
 import com.jiangdg.ausbc.widget.IAspectRatio
-import com.rnuvccamera.databinding.FragmentDemoBinding
+import com.rnuvccamera.databinding.FragmentUvcCameraBinding
 
 class UVCCameraView : CameraFragment() {
-    lateinit var mViewBinding: FragmentDemoBinding
+    lateinit var mViewBinding: FragmentUvcCameraBinding
     private var currentDeviceId: Int? = null
 
     override fun getRootView(inflater: LayoutInflater, container: ViewGroup?): View? {
-        mViewBinding = FragmentDemoBinding.inflate(inflater, container, false)
+        mViewBinding = FragmentUvcCameraBinding.inflate(inflater, container, false)
         return mViewBinding.root
     }
 
