@@ -7,7 +7,7 @@ import {
   UIManager,
 } from 'react-native';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import UsbDeviceModule from '../native/UsbDeviceModule';
+import UsbDeviceModule from '../native/UVCDeviceModule';
 
 // 全局权限请求池
 interface PermissionRequest {
@@ -65,9 +65,9 @@ interface USBCameraProps extends ViewProps {
   deviceId?: string;
 }
 
-const ComponentName = 'RNUSBCameraView';
+const ComponentName = 'UVCCameraView';
 
-const RNUSBCameraView = requireNativeComponent(ComponentName);
+const UVCCameraView = requireNativeComponent(ComponentName);
 const Commands = UIManager.getViewManagerConfig(ComponentName)?.Commands;
 
 export const USBCamera: React.FC<USBCameraProps> = props => {
@@ -166,7 +166,7 @@ export const USBCamera: React.FC<USBCameraProps> = props => {
     <View
       style={[props.style, {justifyContent: 'center', alignItems: 'center'}]}>
       {isConnected ? (
-        <RNUSBCameraView ref={viewRef} style={props.style} />
+        <UVCCameraView ref={viewRef} style={props.style} />
       ) : (
         <Text style={{position: 'absolute', color: 'white'}}>等待连接</Text>
       )}

@@ -79,7 +79,7 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
                 mCameraMap[device.deviceId] = this
             }
             mCameraMap[device.deviceId]?.apply {
-                UsbDeviceModule.getCtrlBlock(device.deviceId)?.let { block ->
+                UVCDeviceModule.getCtrlBlock(device.deviceId)?.let { block ->
                     setUsbControlBlock(block)
                 }
             }?.also { camera ->
@@ -109,15 +109,10 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
     }
 
     private fun handleTextureView(textureView: TextureView) {
-        Log.d("test1", "66661"+textureView)
-//        Toast.makeText(requireContext(), "66661", Toast.LENGTH_SHORT).show()
         textureView.surfaceTextureListener = object : TextureView.SurfaceTextureListener {
             override fun onSurfaceTextureAvailable(p0: SurfaceTexture, p1: Int, p2: Int) {
-                Log.d("test1", "66662")
-//                Toast.makeText(requireContext(), "66662"+(getDefaultCamera()==null), Toast.LENGTH_SHORT).show()
                 surfaceInited = true;
                 val defaultCamera = mCurrentDevice
-//                Toast.makeText(requireContext(), "66663"+(defaultCamera==null), Toast.LENGTH_SHORT).show()
                 if (defaultCamera == null) {
                     return
                 }
@@ -130,8 +125,6 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
             }
 
             override fun onSurfaceTextureDestroyed(p0: SurfaceTexture): Boolean {
-                Log.d("test1", "66663")
-//                unRegisterMultiCamera()
                 surfaceInited = false;
                 return false
             }

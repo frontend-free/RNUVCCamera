@@ -3,22 +3,21 @@ package com.rnuvccamera.native.uvc
 import android.content.Context
 import android.hardware.usb.UsbDevice
 import android.hardware.usb.UsbManager
-import android.util.Log
+import android.widget.Toast
 import com.facebook.react.bridge.*
 import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.jiangdg.ausbc.MultiCameraClient
 import com.jiangdg.ausbc.callback.IDeviceConnectCallBack
 import com.jiangdg.usb.USBMonitor
 
-class UsbDeviceModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
+class UVCDeviceModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
     private var mCameraClient: MultiCameraClient? = null
-    private val TAG = "UsbDeviceModule"
     private var pendingPermissionPromise: Promise? = null
     private var pendingPermissionDeviceId: Int? = null
 
     companion object {
         private val deviceCtrlBlockMap = mutableMapOf<Int, USBMonitor.UsbControlBlock>()
-        
+
         fun getCtrlBlock(deviceId: Int): USBMonitor.UsbControlBlock? {
             return deviceCtrlBlockMap[deviceId]
         }
@@ -28,7 +27,7 @@ class UsbDeviceModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         initMultiCamera()
     }
 
-    override fun getName() = "UsbDeviceModule"
+    override fun getName() = "UVCDeviceModule"
 
     private fun initMultiCamera() {
         mCameraClient = MultiCameraClient(reactApplicationContext, object : IDeviceConnectCallBack {
@@ -58,7 +57,7 @@ class UsbDeviceModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
                     ctrlBlock?.let { block ->
                         deviceCtrlBlockMap[device.deviceId] = block
                     }
-                    
+
                     if (device.deviceId == pendingPermissionDeviceId) {
                         pendingPermissionPromise?.resolve(true)
                         pendingPermissionPromise = null
@@ -75,7 +74,7 @@ class UsbDeviceModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
             override fun onDisConnectDec(device: UsbDevice?, ctrlBlock: USBMonitor.UsbControlBlock?) {
                 device?.let {
                     deviceCtrlBlockMap.remove(device.deviceId)
-                    
+
                     val params = Arguments.createMap().apply {
                         putInt("deviceId", it.deviceId)
                     }
@@ -106,7 +105,7 @@ class UsbDeviceModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         try {
             val usbManager = reactApplicationContext.getSystemService(Context.USB_SERVICE) as UsbManager
             val devices = usbManager.deviceList.values
-            
+
             val deviceArray = Arguments.createArray()
             devices.forEach { device ->
                 val deviceInfo = Arguments.createMap().apply {
@@ -128,7 +127,7 @@ class UsbDeviceModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         try {
             val usbManager = reactApplicationContext.getSystemService(Context.USB_SERVICE) as UsbManager
             val device = usbManager.deviceList.values.find { it.deviceId == deviceId }
-            
+
             if (device == null) {
                 promise.reject("ERROR", "Device not found")
                 return
@@ -148,7 +147,7 @@ class UsbDeviceModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         try {
             val usbManager = reactApplicationContext.getSystemService(Context.USB_SERVICE) as UsbManager
             val device = usbManager.deviceList.values.find { it.deviceId == deviceId }
-            
+
             if (device == null) {
                 promise.reject("ERROR", "Device not found")
                 return
@@ -184,4 +183,4 @@ class UsbDeviceModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         pendingPermissionPromise = null
         pendingPermissionDeviceId = null
     }
-} 
+}

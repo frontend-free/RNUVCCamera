@@ -1,6 +1,6 @@
 import {NativeModules, NativeEventEmitter} from 'react-native';
 
-const {UsbDeviceModule} = NativeModules;
+const {UVCDeviceModule} = NativeModules;
 
 export interface UsbDevice {
   deviceId: number;
@@ -20,21 +20,21 @@ interface UsbDeviceModuleInterface {
   addDevicePermissionDeniedListener(callback: (device: Pick<UsbDevice, 'deviceId'>) => void): any;
 }
 
-const eventEmitter = new NativeEventEmitter(UsbDeviceModule);
+const eventEmitter = new NativeEventEmitter(UVCDeviceModule);
 
 export default {
-  ...UsbDeviceModule,
+  ...UVCDeviceModule,
 
   getDeviceList: async (): Promise<UsbDevice[]> => {
-    return UsbDeviceModule.getDeviceList();
+    return UVCDeviceModule.getDeviceList();
   },
 
   requestPermission: async (deviceId: number): Promise<boolean> => {
-    return UsbDeviceModule.requestPermission(deviceId);
+    return UVCDeviceModule.requestPermission(deviceId);
   },
 
   hasPermission: async (deviceId: number): Promise<boolean> => {
-    return UsbDeviceModule.hasPermission(deviceId);
+    return UVCDeviceModule.hasPermission(deviceId);
   },
 
   addDeviceAttachedListener: (callback: (device: UsbDevice) => void) => {

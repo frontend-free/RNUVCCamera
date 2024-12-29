@@ -4,22 +4,18 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.hardware.usb.UsbDevice
 import android.hardware.usb.UsbManager
-import android.os.Bundle
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.view.LayoutInflater
 import android.widget.Toast
-import androidx.databinding.DataBindingUtil
-import com.jiangdg.ausbc.camera.bean.CameraRequest
 import com.jiangdg.ausbc.MultiCameraClient
 import com.jiangdg.ausbc.callback.ICameraStateCallBack
 import com.jiangdg.ausbc.widget.AspectRatioTextureView
 import com.jiangdg.ausbc.widget.IAspectRatio
-import com.rnuvccamera.R
 import com.rnuvccamera.databinding.FragmentDemoBinding
 
-class USBCameraView : CameraFragment() {
+class UVCCameraView : CameraFragment() {
     lateinit var mViewBinding: FragmentDemoBinding
     private var currentDeviceId: Int? = null
 
@@ -43,7 +39,7 @@ class USBCameraView : CameraFragment() {
     }
 
     private fun handleCameraError(msg: String?) {
-        Toast.makeText(requireContext(), "handleCameraError: $msg", Toast.LENGTH_SHORT).show()
+
     }
 
     private fun handleCameraClosed() {
@@ -52,7 +48,7 @@ class USBCameraView : CameraFragment() {
     }
 
     private fun handleCameraOpened() {
-        Toast.makeText(requireContext(), "handleCameraOpened", Toast.LENGTH_SHORT).show()
+
     }
 
     override fun getCameraView(): IAspectRatio? {
@@ -79,7 +75,6 @@ class USBCameraView : CameraFragment() {
         var isSet = false
         getUsbDeviceList()?.forEach { device ->
             if (device.deviceId == deviceId) {
-                Toast.makeText(requireContext(), "设备id"+deviceId, Toast.LENGTH_SHORT).show()
                 isSet = true
                 setDevice(device)
             }
@@ -91,18 +86,5 @@ class USBCameraView : CameraFragment() {
 
     override fun getDefaultCamera(): UsbDevice? {
         return this.getUsbDeviceList()?.find { it.deviceId == currentDeviceId }
-    }
-
-
-    fun setResolution(width: Int, height: Int) {
-//        if (currentWidth == width && currentHeight == height) return
-//        currentWidth = width
-//        currentHeight = height
-//
-//        // 如果摄像头已经打开，需要重新打开以应用新的分辨率
-//        if (isCameraOpened()) {
-//            closeCamera()
-//            openCamera()
-//        }
     }
 }

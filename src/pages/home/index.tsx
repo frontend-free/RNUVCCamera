@@ -1,8 +1,8 @@
 import React, {FC, useEffect, useRef} from 'react';
 import {Button, ScrollView, StyleSheet, Text, ToastAndroid, View} from 'react-native';
 import {USBCamera} from '../../components/USBCamera';
-import {PERMISSIONS, request, requestMultiple} from "react-native-permissions";
-import UsbDeviceManager, {UsbDevice} from '../../native/UsbDeviceModule';
+import {PERMISSIONS, requestMultiple} from "react-native-permissions";
+import UsbDeviceManager, {UsbDevice} from '../../native/UVCDeviceModule.ts';
 
 
 const Home: FC = () => {

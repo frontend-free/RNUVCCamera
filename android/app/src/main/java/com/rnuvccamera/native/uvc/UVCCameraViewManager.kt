@@ -7,15 +7,14 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.fragment.app.FragmentActivity
 import com.facebook.react.bridge.ReadableArray
-import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.common.MapBuilder
+import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.ViewGroupManager
-import com.facebook.react.uimanager.annotations.ReactProp
 
 
-class USBCameraViewManager : ViewGroupManager<FrameLayout>() {
-    override fun getName(): String = "RNUSBCameraView"
+class UVCCameraViewManager : ViewGroupManager<FrameLayout>() {
+    override fun getName(): String = "UVCCameraView"
 
 
     override fun createViewInstance(context: ThemedReactContext): FrameLayout {
@@ -59,7 +58,7 @@ class USBCameraViewManager : ViewGroupManager<FrameLayout>() {
                 return
             }
 
-            val fragment = USBCameraView()
+            val fragment = UVCCameraView()
             activity.runOnUiThread {
                 try {
                     activity.supportFragmentManager
@@ -96,28 +95,26 @@ class USBCameraViewManager : ViewGroupManager<FrameLayout>() {
         }
     }
 
-    private fun getFragment(view: FrameLayout): USBCameraView? {
+    private fun getFragment(view: FrameLayout): UVCCameraView? {
         val activity = (view.context as? ThemedReactContext)?.currentActivity as? FragmentActivity
         val fragment = activity?.supportFragmentManager?.findFragmentById(view.id)
         Log.d("TestView", "Getting fragment: ${fragment != null}")
-        return fragment as? USBCameraView
+        return fragment as? UVCCameraView
     }
 
     companion object {
         const val COMMAND_SET_DEVICE_ID = 1
-        const val COMMAND_SET_RESOLUTION = 2
     }
 
     override fun getCommandsMap(): Map<String, Int> {
         return mapOf(
             "setDeviceId" to COMMAND_SET_DEVICE_ID,
-            "setResolution" to COMMAND_SET_RESOLUTION
         )
     }
 
     override fun getExportedCustomDirectEventTypeConstants(): MutableMap<String, Any>? {
         return MapBuilder.builder<String, Any>()
-            .put("setDeviceId", 
+            .put("setDeviceId",
                 MapBuilder.of(
                     "registrationName",
                     "onSetDeviceId"
@@ -155,18 +152,6 @@ class USBCameraViewManager : ViewGroupManager<FrameLayout>() {
                     } catch (e: Exception) {
                         Log.e("TestView", "Error in setDeviceId command: ${e.message}")
                     }
-                }
-            }
-            COMMAND_SET_RESOLUTION -> {
-                try {
-                    val width = args?.getMap(0)?.getInt("width") ?: return
-                    val height = args.getMap(0)?.getInt("height") ?: return
-                    root.post {
-                        val fragment = getFragment(root)
-                        fragment?.setResolution(width, height)
-                    }
-                } catch (e: Exception) {
-                    Log.e("TestView", "Error in setResolution command: ${e.message}")
                 }
             }
         }
