@@ -1,6 +1,7 @@
 package com.rnuvccamera.native.uvc
 
 import android.content.Context
+import android.hardware.usb.UsbConstants
 import android.hardware.usb.UsbDevice
 import android.hardware.usb.UsbManager
 import android.widget.Toast
@@ -104,7 +105,28 @@ class UVCDeviceModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     fun getDeviceList(promise: Promise) {
         try {
             val usbManager = reactApplicationContext.getSystemService(Context.USB_SERVICE) as UsbManager
-            val devices = usbManager.deviceList.values
+            // 筛选出UVC设备
+            val devices = usbManager.deviceList.values.filter {
+                // UVC设备的特征：
+                // 1. deviceClass 可能是 USB_CLASS_VIDEO (0x0E) 或 USB_CLASS_MISC (0xEF)
+                // 2. 如果是 USB_CLASS_MISC，需要检查接口类型
+                when (it.deviceClass) {
+                    UsbConstants.USB_CLASS_VIDEO -> true
+                    UsbConstants.USB_CLASS_MISC -> {
+                        // 检查接口是否包含视频类
+                        var hasVideoInterface = false
+                        for (i in 0 until it.interfaceCount) {
+                            val intf = it.getInterface(i)
+                            if (intf.interfaceClass == UsbConstants.USB_CLASS_VIDEO) {
+                                hasVideoInterface = true
+                                break
+                            }
+                        }
+                        hasVideoInterface
+                    }
+                    else -> false
+                }
+            }
 
             val deviceArray = Arguments.createArray()
             devices.forEach { device ->
