@@ -1,6 +1,6 @@
 import React, {FC, useEffect} from 'react';
 import {StyleSheet, Text, View} from 'react-native';
-import {UVCCameraWithIndex} from '@yz1311/react-native-uvc-camera';
+import {UVCCameraWithIndex} from '@fe-free/react-native-uvc-camera';
 import {PERMISSIONS, requestMultiple} from 'react-native-permissions';
 
 const Home: FC = () => {
