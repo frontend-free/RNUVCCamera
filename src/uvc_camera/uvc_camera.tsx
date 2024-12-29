@@ -7,8 +7,8 @@ import {
   StyleSheet,
   ToastAndroid,
 } from 'react-native';
-import React, {useCallback, useRef} from 'react';
-import UsbDeviceModule from '../native/UVCDeviceModule';
+import React, {useCallback, useLayoutEffect, useRef, useState} from 'react';
+import {UVCDeviceModule} from './uvc_device_module';
 import {TaskQueue, useDevices} from './help';
 import {useDeviceEvent} from './help';
 
@@ -21,18 +21,19 @@ const UVCCameraView = requireNativeComponent(ComponentName);
 const Commands = UIManager.getViewManagerConfig(ComponentName)?.Commands;
 
 const BaseUVCCamera = ({deviceId}: {deviceId: number}) => {
-  const viewRef = useRef(null);
+  const viewRef = useRef<View>(null);
+  const cameraViewRef = useRef(null);
 
   const handleAttached = useCallback(async () => {
     try {
       // 获取权限，排队执行
       const isGranted = await taskQueue.addTask(() =>
-        UsbDeviceModule.requestPermission(deviceId),
+        UVCDeviceModule.requestPermission(deviceId),
       );
 
-      // 权限请求成功后，设置设备ID
+      // 权限请求成功后，设置设备ID，即可显示摄像头预览
       if (isGranted) {
-        const node = findNodeHandle(viewRef.current);
+        const node = findNodeHandle(cameraViewRef.current);
         if (node) {
           ToastAndroid.show('设备已连接' + deviceId, ToastAndroid.SHORT);
           UIManager.dispatchViewManagerCommand(node, Commands.setDeviceId, [
@@ -50,9 +51,21 @@ const BaseUVCCamera = ({deviceId}: {deviceId: number}) => {
     onAttached: handleAttached,
   });
 
+  // 获取预览大小
+  const [viewSize, setViewSize] = useState({width: 0, height: 0});
+  useLayoutEffect(() => {
+    viewRef.current?.measure((ox, oy, width, height) => {
+      setViewSize({width, height});
+    });
+  }, []);
+
   return (
-    <View style={styles.full}>
-      <UVCCameraView ref={viewRef} />
+    <View ref={viewRef} style={styles.full}>
+      <UVCCameraView
+        ref={cameraViewRef}
+        // @ts-ignore
+        style={{width: viewSize.width, height: viewSize.height}}
+      />
       {isDev && <Text style={styles.rightTop}>{state}</Text>}
     </View>
   );
@@ -62,11 +75,7 @@ const UVCCamera = ({deviceId}: {deviceId?: number}) => {
   return (
     <View style={styles.full}>
       {deviceId ? (
-        <BaseUVCCamera
-          key={deviceId}
-          deviceId={deviceId}
-          style={{width: 320, height: 240}}
-        />
+        <BaseUVCCamera key={deviceId} deviceId={deviceId} />
       ) : (
         <Text style={styles.text}>等待连接</Text>
       )}
@@ -75,6 +84,7 @@ const UVCCamera = ({deviceId}: {deviceId?: number}) => {
   );
 };
 
+/** 通过位置来调用，更便捷 */
 const UVCCameraWithIndex = ({index}: {index: number}) => {
   const {devices} = useDevices();
 

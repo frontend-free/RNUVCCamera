@@ -1,7 +1,8 @@
 import {useState, useEffect, useCallback, useMemo} from 'react';
-import UsbDeviceModule from '../native/UVCDeviceModule';
-import UsbDeviceManager, {UsbDevice} from '../native/UVCDeviceModule';
+import {UVCDeviceModule} from './uvc_device_module';
+import {UVCDevice} from './uvc_device_module';
 
+/** 任务调度 */
 class TaskQueue {
   queue: {
     task: () => Promise<any>;
@@ -41,13 +42,14 @@ class TaskQueue {
   }
 }
 
+/** 获取设备列表 */
 function useDevices() {
-  const [devices, setDevices] = useState<UsbDevice[]>([]);
+  const [devices, setDevices] = useState<UVCDevice[]>([]);
 
   // 稳定的
   const getDevices = useCallback(async () => {
     try {
-      const list = await UsbDeviceManager.getDeviceList();
+      const list = await UVCDeviceModule.getDeviceList();
       setDevices(list);
     } catch (error) {
       console.error('Failed to get device list:', error);
@@ -57,12 +59,12 @@ function useDevices() {
   useEffect(() => {
     getDevices();
 
-    const attached = UsbDeviceManager.addDeviceAttachedListener(device => {
+    const attached = UVCDeviceModule.onDeviceAttached(device => {
       console.log('device attached:', device);
       getDevices();
     });
 
-    const detached = UsbDeviceManager.addDeviceDetachedListener(device => {
+    const detached = UVCDeviceModule.onDeviceDetached(device => {
       console.log('device detached:', device);
       getDevices();
     });
@@ -81,6 +83,7 @@ function useDevices() {
   return {devices: sortedDevices};
 }
 
+/** 设备事件监听 */
 function useDeviceEvent(params: {
   deviceId: number;
 
@@ -102,7 +105,7 @@ function useDeviceEvent(params: {
 
   useEffect(() => {
     // 设备插入事件
-    const attached = UsbDeviceModule.addDeviceAttachedListener(async device => {
+    const attached = UVCDeviceModule.onDeviceAttached(async device => {
       if (device.deviceId === deviceId) {
         setState('attached');
 
@@ -111,7 +114,7 @@ function useDeviceEvent(params: {
     });
 
     // 设备断开事件
-    const detached = UsbDeviceModule.addDeviceDetachedListener(device => {
+    const detached = UVCDeviceModule.onDeviceDetached(device => {
       if (device.deviceId === deviceId) {
         setState('detached');
 
@@ -120,7 +123,7 @@ function useDeviceEvent(params: {
     });
 
     // 设备连接事件
-    const connected = UsbDeviceModule.addDeviceConnectedListener(device => {
+    const connected = UVCDeviceModule.onDeviceConnected(device => {
       if (device.deviceId === deviceId) {
         setState('connected');
 
@@ -129,18 +132,16 @@ function useDeviceEvent(params: {
     });
 
     // 设备断开事件
-    const disconnected = UsbDeviceModule.addDeviceDisconnectedListener(
-      device => {
-        if (device.deviceId === deviceId) {
-          setState('disconnected');
+    const disconnected = UVCDeviceModule.onDeviceDisconnected(device => {
+      if (device.deviceId === deviceId) {
+        setState('disconnected');
 
-          onDisconnected?.();
-        }
-      },
-    );
+        onDisconnected?.();
+      }
+    });
 
     // 设备权限被拒绝事件
-    const permissionDenied = UsbDeviceModule.addDevicePermissionDeniedListener(
+    const permissionDenied = UVCDeviceModule.onDevicePermissionDenied(
       device => {
         if (device.deviceId === deviceId) {
           setState('permissionDenied');
